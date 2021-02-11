@@ -16,6 +16,10 @@ data "aws_ami" "amazon-linux-2" {
   }
 }
 
+data "http" "myip" {
+  url = "http://ipv4.icanhazip.com"
+}
+
 resource "aws_instance" "jenkins-instance" {
   ami             = data.aws_ami.amazon-linux-2.id
   instance_type   = "t2.medium"
@@ -90,21 +94,30 @@ resource "aws_security_group" "sg_allow_ssh_jenkins" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.development-vpc.cidr_block]
+    cidr_blocks = [
+      aws_vpc.development-vpc.cidr_block,
+      "${chomp(data.http.myip.body)}/32"
+    ]
   }
 
   ingress {
     from_port   = 8080
     to_port     = 8080
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.development-vpc.cidr_block]
+    cidr_blocks = [
+      aws_vpc.development-vpc.cidr_block,
+      "${chomp(data.http.myip.body)}/32"
+    ]
   }
 
   ingress {
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
-    cidr_blocks = [aws_vpc.development-vpc.cidr_block]
+    cidr_blocks = [
+      aws_vpc.development-vpc.cidr_block,
+      "${chomp(data.http.myip.body)}/32"
+    ]
   }
 
   egress {
